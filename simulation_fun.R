@@ -13,7 +13,7 @@
 #' @import IsoplotR
 #' @export estimations: estiamted OLR slope, estimated standard error of OLR slope,
 #' estimated YORK slope, estimated standard error of YORK slope.
-#' @examples 
+#' @examples
 #' simulation_fun(b_true = 3, x_sdev = 0.3, y_sdev = 0.3, x_range = 5)
 
 simulation_fun <- function(numRuns = 1000, numPoints = 100, b_true,
@@ -22,39 +22,42 @@ simulation_fun <- function(numRuns = 1000, numPoints = 100, b_true,
   x_true <- runif(n = numPoints, min = 0, max = x_range)
   #rnorm(n = numPoints, mean = 10, sd = 5)
   y_true <- x_true*b_true
-  
-  result <- matrix(0, numRuns, 4)
+
+  result <- matrix(0, numRuns, 7)
   ## iteration
   for (iter in 1:numRuns) {
     # add error term
     x_err <- rnorm(n = numPoints, mean = 0, sd = x_sdev)
     x_obs <- x_true + x_err
-    
+
     y_err <- rnorm(n = numPoints, mean = 0, sd = y_sdev)
     y_obs <- y_true + y_err
-    
+
     ## model fitting
     # OLR
     OLRoutput <- lm(y_obs~x_obs)
     OLRsum <- summary(OLRoutput)
     OLR <- OLRsum$coefficients[2,1]
     OLRse <- OLRsum$coefficients[2,2]
-    
+    OLR.Rsquare <- OLRsum$r.squared
+
     # YORK
     tempYork <- cbind(x_obs, x_sdev, y_obs, y_sdev)
     Yorkoutput <- york(tempYork, alpha = 0.05)
     YORK <- Yorkoutput$b[1]
     YORKse <- Yorkoutput$b[2]
-    
-    result[iter, ] <- c(OLR, OLRse, YORK, YORKse)
-    
+    YORK.Rsquare <- Yorkoutput$mswd
+    YORK.pvalue <- Yorkoutput$p.value
+
+    result[iter, ] <- c(OLR, OLRse, OLR.Rsquare, YORK, YORKse, YORK.Rsquare, YORK.pvalue)
+
   }
-  
-  colnames(result) <- c("OLR Slope","OLR SE", 
-                        "YORK Slope", "YORK SE")
+
+  colnames(result) <- c("OLR Slope","OLR SE", "OLR Rsquare",
+                        "YORK Slope", "YORK SE", "YORK mswd", "YORK p.value")
   rownames(result) <- seq(1:numRuns)
-  
+
   result_sum <- apply(result, 2, mean)
-  
+
   return(result_sum)
 }

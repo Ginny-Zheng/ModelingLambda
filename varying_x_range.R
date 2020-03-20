@@ -2,7 +2,6 @@
 #'
 #' This function allows you to estimate OLR and YORK slope with different range of X.
 #' @param numRuns number of iterations. Defaults to be 1000.
-#' @param numPoints number of points in each iteration. Defaults to be 100.
 #' @param b_true true value of the slope.
 #' @param max_x_range maximum range of X values.
 #' @param x_sdev standard deviation of X.
@@ -20,17 +19,24 @@ vary_x_range <- function(b_true, max_x_range, x_sdev, y_sdev, numRuns = 1000, nu
   x_range_1 <- seq(1, max_x_range, by = 0.1)
   OLR_beta <- rep(100, length(x_range_1))
   YORK_beta <- rep(100, length(x_range_1))
+  OLR_R <- rep(100, length(x_range_1))
   OLR_se <- rep(100, length(x_range_1))
   YORK_se <- rep(100, length(x_range_1))
+  YORK_R <- rep(100, length(x_range_1))
+  YORK_pvalue <- rep(100, length(x_range_1))
   for (i in 1:length(x_range_1)) {
     a <- simulation_fun(b_true = b_true, x_range = x_range_1[i], x_sdev = x_sdev,
                   y_sdev = y_sdev, numRuns = numRuns, numPoints = numPoints)
     OLR_beta[i] <- a[1]
     OLR_se[i] <- a[2]
-    YORK_beta[i] <- a[3]
-    YORK_se[i] <- a[4]
+    OLR_R[i] <- a[3]
+
+    YORK_beta[i] <- a[4]
+    YORK_se[i] <- a[5]
+    YORK_R[i] <- a[6]
+    YORK_pvalue[i] <- a[7]
   }
-  result <- data.frame(OLR_beta = OLR_beta, OLR_se = OLR_se,
-                       YORK_beta = YORK_beta, YORK_se = YORK_se)
+  result <- data.frame(OLR_beta = OLR_beta, OLR_se = OLR_se, OLR_R = OLR_R,
+                       YORK_beta = YORK_beta, YORK_se = YORK_se, YORK_R = YORK_R, YORK_pvalue = YORK_pvalue)
   return(result)
 }
